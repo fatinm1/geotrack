@@ -25,7 +25,6 @@ export function useAircraftWebSocket() {
     ws.onopen = () => setConnected(true);
     ws.onclose = () => setConnected(false);
     ws.onerror = () => setConnected(false);
-
     ws.onmessage = (event) => {
       try {
         const msg = JSON.parse(event.data);
@@ -46,7 +45,11 @@ export function useAircraftWebSocket() {
       }
     };
 
-    return () => ws.close();
+    return () => {
+      if (ws.readyState === WebSocket.CONNECTING || ws.readyState === WebSocket.OPEN) {
+        ws.close();
+      }
+    };
   }, []);
 
   return { aircraft, connected };
