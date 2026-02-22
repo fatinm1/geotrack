@@ -48,6 +48,7 @@ export const MapLibreGlobe = forwardRef<MapLibreGlobeRef, MapLibreGlobeProps>(fu
         style: {
           version: 8,
           projection: { type: 'vertical-perspective' },
+          glyphs: 'https://protomaps.github.io/basemaps-assets/fonts/{fontstack}/{range}.pbf',
           sources: {
             satellite: {
               type: 'raster',
@@ -56,18 +57,18 @@ export const MapLibreGlobe = forwardRef<MapLibreGlobeRef, MapLibreGlobeProps>(fu
             },
           },
           layers: [
-            { id: 'background', type: 'background', paint: { 'background-color': 'rgb(5, 8, 16)' } },
             { id: 'satellite', type: 'raster', source: 'satellite', minzoom: 0, maxzoom: 19 },
           ],
         },
         center: [-76.5, 39],
         zoom: 3,
-        minZoom: 1.5,
+        minZoom: 2.2,
         maxZoom: 19,
       });
       map.on('style.load', () => {
         map.setRenderWorldCopies(false);
-        map.setFog({ color: 'rgb(5, 8, 16)', 'high-color': 'rgb(5, 8, 16)', 'horizon-blend': 0 });
+        map.setFog({ color: 'rgba(0,0,0,0)', 'high-color': 'rgba(0,0,0,0)', 'horizon-blend': 0 });
+        map.setSky({ 'atmosphere-blend': 0 });
 
         // Add polygon layer
         if (polygonsData.length > 0) {
@@ -95,27 +96,26 @@ export const MapLibreGlobe = forwardRef<MapLibreGlobeRef, MapLibreGlobeProps>(fu
           });
         }
 
-        // Add points layer
-        if (pointsData.length > 0) {
-          map.addSource('points', {
-            type: 'geojson',
-            data: {
-              type: 'FeatureCollection',
-        features: pointsData.map((p) => ({
-          type: 'Feature',
-          properties: {
-            color: pointColor?.(p) ?? '#06b6d4',
-            radius: pointRadius?.(p) ?? 0.2,
-            label: pointLabel?.(p) ?? '',
-            type: p.type,
-            aircraft: p.aircraft,
-            camera: p.camera,
+        // Add points layer (always add source, even when empty - data updates via useEffect)
+        map.addSource('points', {
+          type: 'geojson',
+          data: {
+            type: 'FeatureCollection',
+            features: pointsData.map((p) => ({
+              type: 'Feature',
+              properties: {
+                color: pointColor?.(p) ?? '#06b6d4',
+                radius: pointRadius?.(p) ?? 0.2,
+                label: pointLabel?.(p) ?? '',
+                type: p.type,
+                aircraft: p.aircraft,
+                camera: p.camera,
+              },
+              geometry: { type: 'Point', coordinates: [p.lng, p.lat] },
+            })),
           },
-          geometry: { type: 'Point', coordinates: [p.lng, p.lat] },
-        })),
-            },
-          });
-          map.addLayer({
+        });
+        map.addLayer({
             id: 'points-circle',
             type: 'circle',
             source: 'points',
@@ -126,25 +126,45 @@ export const MapLibreGlobe = forwardRef<MapLibreGlobeRef, MapLibreGlobeProps>(fu
               'circle-stroke-color': '#fff',
             },
           });
+        map.addLayer({
+            id: 'points-labels',
+            type: 'symbol',
+            source: 'points',
+            layout: {
+              'text-field': ['get', 'label'],
+              'text-size': 12,
+              'text-anchor': 'top',
+              'text-offset': [0, 0.8],
+              'text-font': ['Noto Sans Regular', 'Noto Sans CJK TC Regular'],
+              'symbol-sort-key': ['get', 'radius'],
+            },
+            paint: {
+              'text-color': '#ffffff',
+              'text-halo-color': 'rgba(0, 0, 0, 0.8)',
+              'text-halo-width': 2,
+            },
+            filter: ['!=', ['get', 'label'], ''],
+        });
 
-          if (onPointClick) {
-            map.on('click', 'points-circle', (e) => {
-              const f = e.features?.[0];
-              if (f?.properties) {
-                const props = f.properties as Record<string, unknown>;
-                onPointClick({
-                  lat: f.geometry.type === 'Point' ? (f.geometry as { coordinates: [number, number] }).coordinates[1] : 0,
-                  lng: f.geometry.type === 'Point' ? (f.geometry as { coordinates: [number, number] }).coordinates[0] : 0,
-                  type: props.type as string,
-                  aircraft: props.aircraft,
-                  camera: props.camera,
-                });
-              }
-            });
-            map.getCanvas().style.cursor = 'pointer';
-          }
-          onReady?.();
+        if (onPointClick) {
+          const handlePointLayerClick = (e: maplibregl.MapLayerMouseEvent) => {
+            const f = e.features?.[0];
+            if (f?.properties) {
+              const props = f.properties as Record<string, unknown>;
+              onPointClick({
+                lat: f.geometry.type === 'Point' ? (f.geometry as { coordinates: [number, number] }).coordinates[1] : 0,
+                lng: f.geometry.type === 'Point' ? (f.geometry as { coordinates: [number, number] }).coordinates[0] : 0,
+                type: props.type as string,
+                aircraft: props.aircraft,
+                camera: props.camera,
+              });
+            }
+          };
+          map.on('click', 'points-circle', handlePointLayerClick);
+          map.on('click', 'points-labels', handlePointLayerClick);
+          map.getCanvas().style.cursor = 'pointer';
         }
+        onReady?.();
       });
       mapRef.current = map;
       const el = containerRef.current;
@@ -187,7 +207,7 @@ export const MapLibreGlobe = forwardRef<MapLibreGlobeRef, MapLibreGlobeProps>(fu
   return (
     <div
       ref={containerRef}
-      style={{ width: '100%', height: '100%', minWidth: 400, minHeight: 400 }}
+      style={{ width: '100%', height: '100%', minWidth: 400, minHeight: 400, background: 'transparent' }}
       className="maplibregl-map"
     />
   );

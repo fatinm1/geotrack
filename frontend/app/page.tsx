@@ -151,9 +151,9 @@ export default function Home() {
           </div>
         </aside>
 
-        <main className="relative flex min-h-0 min-w-0 flex-1 items-center justify-center p-4">
+        <main className="relative flex min-h-0 min-w-0 flex-1">
           <div
-            className={`map-viewport relative ${visualMode}`}
+            className={`map-viewport relative h-full w-full ${visualMode}`}
             style={
               visualMode === 'nvg'
                 ? { filter: 'hue-rotate(85deg) saturate(2.5) brightness(0.85) contrast(1.3)' }
@@ -168,8 +168,7 @@ export default function Home() {
                 : undefined
             }
           >
-            <div className="absolute inset-0">
-              <MapLibreGlobe
+            <MapLibreGlobe
                 ref={globeRef}
                 pointsData={pointsData}
                 polygonsData={BUILDING_POLYGONS}
@@ -181,7 +180,6 @@ export default function Home() {
                 width="100%"
                 height="100%"
               />
-            </div>
           </div>
 
           {selectedAircraft && (
@@ -208,9 +206,6 @@ export default function Home() {
             </div>
           )}
 
-          <div className="pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 font-mono text-[10px] text-slate-500">
-            3D GLOBE
-          </div>
         </main>
 
         <aside className="w-56 flex-shrink-0 border-l border-white/5 bg-black/40 p-3">

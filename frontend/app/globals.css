@@ -8,6 +8,13 @@
   }
 }
 
+/* MapLibre transparent background for globe */
+.maplibregl-map,
+.maplibregl-canvas-container,
+.maplibregl-canvas-container canvas {
+  background: transparent !important;
+}
+
 /* Map controls */
 .maplibregl-ctrl-group button {
   width: 32px !important;
@@ -20,17 +27,12 @@
   border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
 }
 
-/* WORLDVIEW-style visual modes */
+/* Globe container - no window/frame, full bleed */
 .map-viewport {
   position: relative;
-  aspect-ratio: 1;
   width: 100%;
-  max-width: 56rem;
-  max-height: 100%;
+  height: 100%;
   min-height: 400px;
-  overflow: hidden;
-  border-radius: 50%;
-  box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.2), inset 0 0 60px rgba(0,0,0,0.5);
   isolation: isolate;
 }
 
