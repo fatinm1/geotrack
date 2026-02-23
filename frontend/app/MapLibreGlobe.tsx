@@ -67,8 +67,10 @@ export const MapLibreGlobe = forwardRef<MapLibreGlobeRef, MapLibreGlobeProps>(fu
       });
       map.on('style.load', () => {
         map.setRenderWorldCopies(false);
-        map.setFog({ color: 'rgba(0,0,0,0)', 'high-color': 'rgba(0,0,0,0)', 'horizon-blend': 0 });
-        map.setSky({ 'atmosphere-blend': 0 });
+        // Globe API methods (present in maplibre-gl 4+; types may be incomplete)
+        const m = map as maplibregl.Map & { setFog?: (f: object) => void; setSky?: (s: object) => void };
+        if (m.setFog) m.setFog({ color: 'rgba(0,0,0,0)', 'high-color': 'rgba(0,0,0,0)', 'horizon-blend': 0 });
+        if (m.setSky) m.setSky({ 'atmosphere-blend': 0 });
 
         // Add polygon layer
         if (polygonsData.length > 0) {
@@ -77,9 +79,9 @@ export const MapLibreGlobe = forwardRef<MapLibreGlobeRef, MapLibreGlobeProps>(fu
             data: {
               type: 'FeatureCollection',
               features: polygonsData.map((p) => ({
-                type: 'Feature',
+                type: 'Feature' as const,
                 properties: { color: p.color, height: (p.altitude ?? 0.02) * 1000 },
-                geometry: p.geometry,
+                geometry: p.geometry as GeoJSON.Polygon | GeoJSON.MultiPolygon,
               })),
             },
           });
@@ -151,9 +153,10 @@ export const MapLibreGlobe = forwardRef<MapLibreGlobeRef, MapLibreGlobeProps>(fu
             const f = e.features?.[0];
             if (f?.properties) {
               const props = f.properties as Record<string, unknown>;
+              const coords = f.geometry.type === 'Point' ? (f.geometry as unknown as { coordinates: [number, number] }).coordinates : [0, 0];
               onPointClick({
-                lat: f.geometry.type === 'Point' ? (f.geometry as { coordinates: [number, number] }).coordinates[1] : 0,
-                lng: f.geometry.type === 'Point' ? (f.geometry as { coordinates: [number, number] }).coordinates[0] : 0,
+                lat: coords[1],
+                lng: coords[0],
                 type: props.type as string,
                 aircraft: props.aircraft,
                 camera: props.camera,
