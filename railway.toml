@@ -1,0 +1,5 @@
+# Force Railway to use the root Dockerfile (frontend + backend in one image).
+# Without this, Railway may use Railpack and fail with "start.sh not found".
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"

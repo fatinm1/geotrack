@@ -1,0 +1,9 @@
+# Railway sets PORT. Caddy listens on it and proxies to backend (8000) and frontend (3000).
+{$PORT:3000} {
+  reverse_proxy /api* http://127.0.0.1:8000
+  reverse_proxy /ws* http://127.0.0.1:8000
+  reverse_proxy /docs http://127.0.0.1:8000
+  reverse_proxy /openapi.json http://127.0.0.1:8000
+  reverse_proxy /redoc http://127.0.0.1:8000
+  reverse_proxy * http://127.0.0.1:3000
+}

@@ -92,6 +92,40 @@ geotrack/
 └── README.md
 ```
 
+## Deploy on Railway
+
+Deploy the app (frontend + backend in one service) and PostgreSQL (separate service) on [Railway](https://railway.app).
+
+**Required files (must be committed and pushed):** root `Dockerfile`, `Caddyfile`, `scripts/start.sh`, and `railway.toml`. If Railway reports "Script start.sh not found" or uses Railpack instead of Docker, ensure these files are in your repo and on the branch Railway deploys from.
+
+### 1. Create a project and add PostgreSQL
+
+1. In [Railway](https://railway.app), create a new project.
+2. Add a **PostgreSQL** service (e.g. “Add PostgreSQL” from the dashboard).
+3. In the Postgres service, open **Variables** and copy the `DATABASE_URL` (or note the reference, e.g. `${{Postgres.DATABASE_URL}}`).
+
+### 2. Deploy the app (frontend + backend)
+
+1. Add a new service: **Deploy from GitHub repo** (or “Empty service” and connect repo later).
+2. Select this repository. Railway will detect the **root Dockerfile** and build the image.
+3. In the app service **Variables**, set:
+   - **DATABASE_URL** – from the Postgres service (e.g. `${{Postgres.DATABASE_URL}}`).
+   - **PORT** – Railway sets this automatically; do not override.
+   - Optional: **REDIS_URL** – if you add a Redis plugin later for WebSockets and detection jobs.
+   - Optional: **NEXT_PUBLIC_API_URL** and **NEXT_PUBLIC_WS_URL** – leave unset for same-origin (recommended); or set to the app’s public URL, e.g. `https://your-app.up.railway.app`.
+4. Deploy. The root Dockerfile runs migrations on startup, then serves the app behind Caddy on `PORT`.
+
+### 3. (Optional) Redis
+
+For live aircraft/camera updates and detection jobs, add a **Redis** service in Railway and set **REDIS_URL** in the app service (e.g. `${{Redis.REDIS_URL}}`). Without Redis, WebSocket and RQ features may be limited.
+
+### Summary
+
+| Service   | Role                          |
+|----------|--------------------------------|
+| **App**  | Frontend + Backend (one container, Caddy on `PORT`) |
+| **Postgres** | Database (`DATABASE_URL`)   |
+
 ## How to Extend
 
 - **Add more states' cameras:** Implement a new adapter in `services/adapters/` and wire it to a refresh job.
