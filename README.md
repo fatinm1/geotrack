@@ -109,11 +109,11 @@ Deploy the app (frontend + backend in one service) and PostgreSQL (separate serv
 1. Add a new service: **Deploy from GitHub repo** (or “Empty service” and connect repo later).
 2. Select this repository. Railway will detect the **root Dockerfile** and build the image.
 3. In the app service **Variables**, set:
-   - **DATABASE_URL** – from the Postgres service (e.g. `${{Postgres.DATABASE_URL}}`).
+   - **DATABASE_URL** – **Required.** Use the Postgres service URL: in the Postgres service open **Variables** and copy `DATABASE_URL`, or in the app service add a variable and reference it (e.g. `${{Postgres.DATABASE_URL}}`). If this is missing or wrong, migrations will fail and the deploy will error.
    - **PORT** – Railway sets this automatically; do not override.
-   - Optional: **REDIS_URL** – if you add a Redis plugin later for WebSockets and detection jobs.
-   - Optional: **NEXT_PUBLIC_API_URL** and **NEXT_PUBLIC_WS_URL** – leave unset for same-origin (recommended); or set to the app’s public URL, e.g. `https://your-app.up.railway.app`.
-4. Deploy. The root Dockerfile runs migrations on startup, then serves the app behind Caddy on `PORT`.
+   - Optional: **REDIS_URL** – if you add a Redis service for live WebSocket updates and detection jobs; without it the app still runs (aircraft list via REST, no live push).
+   - Optional: **NEXT_PUBLIC_API_URL** and **NEXT_PUBLIC_WS_URL** – leave unset for same-origin (recommended); or set to the app’s public URL.
+4. Deploy. The root Dockerfile runs migrations on startup (with retries), then serves the app behind Caddy on `PORT`.
 
 ### 3. (Optional) Redis
 

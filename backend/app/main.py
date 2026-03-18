@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api import health, cameras, aircraft, detections
 from app.api.ws import router as ws_router
+from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -15,14 +16,16 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Startup/shutdown lifecycle - run migrations, start aircraft poller."""
-    try:
-        from alembic.config import Config
-        from alembic import command
-        alembic_cfg = Config("alembic.ini")
-        command.upgrade(alembic_cfg, "head")
-        logger.info("Migrations applied")
-    except Exception as e:
-        logger.warning("Migrations skipped: %s", e)
+    if settings.run_migrations_in_app:
+        try:
+            from alembic.config import Config
+            from alembic import command
+
+            alembic_cfg = Config("alembic.ini")
+            command.upgrade(alembic_cfg, "head")
+            logger.info("Migrations applied")
+        except Exception as e:
+            logger.warning("Migrations skipped: %s", e)
 
     # Start aircraft background poller
     import asyncio

@@ -20,9 +20,11 @@ _connections: Set[WebSocket] = set()
 
 
 def _redis_listener():
-    """Background thread: subscribe to Redis and broadcast to WebSocket clients."""
+    """Background thread: subscribe to Redis and broadcast to WebSocket clients (no-op if Redis unavailable)."""
     try:
         r = _get_redis()
+        if r is None:
+            return
         pubsub = r.pubsub()
         pubsub.subscribe(REDIS_CHANNEL)
         for message in pubsub.listen():

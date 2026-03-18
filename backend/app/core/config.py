@@ -11,6 +11,10 @@ class Settings(BaseSettings):
     database_url: str = "postgresql://geotrack:geotrack@localhost:5432/geotrack"
     redis_url: str = "redis://localhost:6379/0"
 
+    # When running behind a process supervisor (e.g. Railway start.sh), migrations
+    # are executed outside the app process to avoid double-runs.
+    run_migrations_in_app: bool = True
+
     opensky_username: Optional[str] = None
     opensky_password: Optional[str] = None
     opensky_poll_seconds: int = 5
