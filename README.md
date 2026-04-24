@@ -1,4 +1,4 @@
-# GeoTrack - Geospatial Tracking MVP
+# GeoTrack - Geospatial Tracking 
 
 A web application for live aircraft positions (ADS-B via OpenSky), Maryland DOT traffic cameras, and safe computer vision analytics (vehicle counts + congestion scores).
 
