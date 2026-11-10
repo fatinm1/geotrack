@@ -1,3 +1,4 @@
+from app.services.broadcast import broadcast_text
 """
 WebSocket routes - aircraft real-time stream.
 """
@@ -33,16 +34,13 @@ def _redis_listener():
             data = message.get("data")
             if not data or not _loop:
                 continue
-            # Broadcast to all connected clients
-            dead = set()
-            for ws in list(_connections):
-                try:
-                    future = asyncio.run_coroutine_threadsafe(ws.send_text(str(data)), _loop)
-                    future.result(timeout=2)
-                except Exception:
-                    dead.add(ws)
-            for ws in dead:
-                _connections.discard(ws)
+            # All connection mutations remain on the event loop.
+            future = asyncio.run_coroutine_threadsafe(broadcast_text(_connections, str(data)), _loop)
+            try:
+                future.result(timeout=3)
+            except Exception:
+                future.cancel()
+
     except Exception as e:
         logger.warning("Redis listener error: %s", e)
 
