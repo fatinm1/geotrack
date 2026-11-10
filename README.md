@@ -137,3 +137,7 @@ For live aircraft/camera updates and detection jobs, add a **Redis** service in 
 1. Enable real OpenSky: set `USE_MOCK_OPENSKY=false` and optionally add credentials.
 2. Enable detections: set `DETECTIONS_ENABLED=true` and optionally plug a real model.
 3. Configure MD CHART feed URL if using real Maryland cameras.
+
+## Demo scope and verification
+
+Aircraft/camera feeds and computer-vision detections have separate live/mock settings. A mock detector is not measured vision accuracy. The project has not established a reproducible concurrent-client or throughput benchmark in this repository. Slow WebSocket viewers now time out independently and are removed. Run `cd backend && python -m pytest tests/test_broadcast.py -q --noconftest` for offline backpressure tests; database/API smoke tests require configured services. Keep detection-trigger endpoints behind an authenticated admin boundary before exposing a production service.

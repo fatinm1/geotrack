@@ -1,0 +1,13 @@
+name: CI
+on: [push, pull_request]
+jobs:
+  broadcast:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install pytest
+      - run: python -m pytest tests/test_broadcast.py -q --noconftest
+        working-directory: backend
